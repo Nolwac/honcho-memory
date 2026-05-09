@@ -15,6 +15,20 @@ Local Docker stack for [Honcho](https://github.com/plastic-labs/honcho) — an o
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose v2)
 - An [OpenRouter](https://openrouter.ai/keys) API key (used for all inference and embeddings)
+- [`task`](https://taskfile.dev) — cross-platform task runner:
+
+  ```bash
+  # macOS
+  brew install go-task
+
+  # Windows (pick one)
+  choco install go-task
+  scoop install task
+  winget install Task.Task
+
+  # Linux
+  sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+  ```
 
 ## Setup
 
@@ -23,7 +37,7 @@ Local Docker stack for [Honcho](https://github.com/plastic-labs/honcho) — an o
 git clone <this-repo> && cd honcho-memory
 
 # 2. Create env files from examples
-make init
+task init
 
 # 3. Fill in your key (the only required edit)
 #    In .env.api and .env.deriver: LLM_OPENROUTER_API_KEY
@@ -66,14 +80,14 @@ All models support tool/function calling, which Honcho requires.
 ## Makefile commands
 
 ```bash
-make up        # start all containers (detached)
-make down      # stop all containers
-make restart   # restart all containers
-make logs      # stream logs from all services
-make ps        # show container status
-make health    # curl the /health endpoint
-make shell-db  # open psql inside honcho-db
-make reset     # ⚠ destroy containers, volumes, and db_data/
+task up        # start all containers (detached)
+task down      # stop all containers
+task restart   # restart all containers
+task logs      # stream logs from all services
+task ps        # show container status
+task health    # curl the /health endpoint
+task shell-db  # open psql inside honcho-db
+task reset     # ⚠ destroy containers, volumes, and db_data/
 ```
 
 ## Ports (configurable in `.env`)

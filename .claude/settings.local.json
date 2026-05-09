@@ -5,7 +5,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(git config *)",
       "WebFetch(domain:openrouter.ai)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(git -C /c/Users/LivinusTuring/Projects/honcho-memory remote add origin https://github.com/Nolwac/honcho-memory.git)"
     ]
   }
 }
