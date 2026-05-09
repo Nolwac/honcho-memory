@@ -1,20 +1,14 @@
 # Honcho local stack
 #
 # Usage:
-#   cp .env.example .env
-#   cp .env.db.example .env.db
-#   cp .env.api.example .env.api         # fill in LLM_OPENAI_API_KEY
-#   cp .env.deriver.example .env.deriver # fill in LLM_OPENAI_API_KEY
-#   make up
+#   task init    # copy env examples
+#   task build   # build honcho:local image from GitHub source (once)
+#   task up      # start all containers
 #
 # .env          — compose-level port/bind vars (read by docker compose itself)
 # .env.db       — injected into honcho-db
 # .env.api      — injected into honcho-api
 # .env.deriver  — injected into honcho-deriver
-#
-# NOTE: plasticlabs/honcho:latest must exist on Docker Hub. If it doesn't,
-# clone https://github.com/plastic-labs/honcho and change both image: lines
-# to  build: { context: ../honcho, dockerfile: Dockerfile }
 
 services:
 
@@ -54,7 +48,7 @@ services:
 
   # ── 3. API ────────────────────────────────────────────────────────────────────
   honcho-api:
-    image: plasticlabs/honcho:latest
+    image: honcho:local
     container_name: honcho-api
     restart: unless-stopped
     depends_on:
@@ -70,7 +64,7 @@ services:
 
   # ── 4. Deriver ────────────────────────────────────────────────────────────────
   honcho-deriver:
-    image: plasticlabs/honcho:latest
+    image: honcho:local
     container_name: honcho-deriver
     restart: unless-stopped
     entrypoint: ["/app/.venv/bin/python", "-m", "src.deriver"]

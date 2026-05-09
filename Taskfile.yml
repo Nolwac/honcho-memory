@@ -1,5 +1,9 @@
 version: '3'
 
+dotenv:
+  - .env
+  - .env.db
+
 tasks:
 
   init:
@@ -17,10 +21,15 @@ tasks:
   _copy-env:
     internal: true
     cmds:
-      - cmd: 'powershell -Command "if (-not (Test-Path \"{{.DST}}\")) { Copy-Item \"{{.SRC}}\" \"{{.DST}}\"; Write-Host \"created {{.DST}}\" } else { Write-Host \"skip   {{.DST}}\" }"'
+      - cmd: 'powershell -Command "if (-not (Test-Path ''{{.DST}}'')) { Copy-Item ''{{.SRC}}'' ''{{.DST}}''; Write-Host ''created {{.DST}}'' } else { Write-Host ''skip   {{.DST}}'' }"'
         platforms: [windows]
       - cmd: '[ -f "{{.DST}}" ] && echo "skip   {{.DST}}" || (cp "{{.SRC}}" "{{.DST}}" && echo "created {{.DST}}")'
         platforms: [linux, darwin]
+
+  build:
+    desc: Build the honcho image from source (pulls directly from GitHub)
+    cmds:
+      - docker build https://github.com/plastic-labs/honcho.git -t honcho:local
 
   up:
     desc: Start all containers (detached)
@@ -50,25 +59,19 @@ tasks:
   health:
     desc: Check the API health endpoint
     cmds:
-      - cmd: curl -s http://localhost:$(grep ^HONCHO_PORT .env | cut -d= -f2)/health | jq .
-        platforms: [linux, darwin]
-      - cmd: 'powershell -Command "$port = (Get-Content .env | Select-String \"^HONCHO_PORT\").Line.Split(\"=\")[1]; curl -s \"http://localhost:$port/health\" | jq ."'
-        platforms: [windows]
+      - curl -s http://127.0.0.1:{{.HONCHO_PORT}}/health
 
   shell-db:
     desc: Open a psql shell inside the database container
     cmds:
-      - cmd: docker exec -it honcho-db psql -U $(grep ^POSTGRES_USER .env.db | cut -d= -f2) -d $(grep ^POSTGRES_DB .env.db | cut -d= -f2)
-        platforms: [linux, darwin]
-      - cmd: 'powershell -Command "$u = (Get-Content .env.db | Select-String \"^POSTGRES_USER\").Line.Split(\"=\")[1]; $d = (Get-Content .env.db | Select-String \"^POSTGRES_DB\").Line.Split(\"=\")[1]; docker exec -it honcho-db psql -U $u -d $d"'
-        platforms: [windows]
+      - docker exec -it honcho-db psql -U {{.POSTGRES_USER}} -d {{.POSTGRES_DB}}
 
   reset:
     desc: "Destroy containers, volumes, and db_data/ — destructive!"
     prompt: This will destroy all data. Are you sure?
     cmds:
       - docker compose down -v
-      - cmd: rm -rf ./db_data
-        platforms: [linux, darwin]
       - cmd: powershell -Command "Remove-Item -Recurse -Force ./db_data -ErrorAction SilentlyContinue"
         platforms: [windows]
+      - cmd: rm -rf ./db_data
+        platforms: [linux, darwin]

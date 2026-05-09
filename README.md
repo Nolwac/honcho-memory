@@ -42,8 +42,11 @@ task init
 # 3. Fill in your key (the only required edit)
 #    In .env.api and .env.deriver: LLM_OPENROUTER_API_KEY
 
-# 4. Start
-make up
+# 4. Build the honcho image from source (once — takes a few minutes)
+task build
+
+# 5. Start
+task up
 
 # 5. Verify
 make health
