@@ -1,0 +1,87 @@
+# Honcho local stack
+#
+# Usage:
+#   cp .env.example .env
+#   cp .env.db.example .env.db
+#   cp .env.api.example .env.api         # fill in LLM_OPENAI_API_KEY
+#   cp .env.deriver.example .env.deriver # fill in LLM_OPENAI_API_KEY
+#   make up
+#
+# .env          — compose-level port/bind vars (read by docker compose itself)
+# .env.db       — injected into honcho-db
+# .env.api      — injected into honcho-api
+# .env.deriver  — injected into honcho-deriver
+#
+# NOTE: plasticlabs/honcho:latest must exist on Docker Hub. If it doesn't,
+# clone https://github.com/plastic-labs/honcho and change both image: lines
+# to  build: { context: ../honcho, dockerfile: Dockerfile }
+
+services:
+
+  # ── 1. Database ──────────────────────────────────────────────────────────────
+  honcho-db:
+    image: pgvector/pgvector:pg15
+    container_name: honcho-db
+    restart: unless-stopped
+    command: ["postgres", "-c", "max_connections=200"]
+    env_file:
+      - path: .env.db
+        required: false
+    ports:
+      - "${DB_BIND:-127.0.0.1}:${DB_PORT:-5432}:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── 2. Cache ──────────────────────────────────────────────────────────────────
+  honcho-redis:
+    image: redis:8.2
+    container_name: honcho-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_BIND:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── 3. API ────────────────────────────────────────────────────────────────────
+  honcho-api:
+    image: plasticlabs/honcho:latest
+    container_name: honcho-api
+    restart: unless-stopped
+    depends_on:
+      honcho-db:
+        condition: service_healthy
+      honcho-redis:
+        condition: service_healthy
+    env_file:
+      - path: .env.api
+        required: false
+    ports:
+      - "${HONCHO_BIND:-127.0.0.1}:${HONCHO_PORT:-8000}:8000"
+
+  # ── 4. Deriver ────────────────────────────────────────────────────────────────
+  honcho-deriver:
+    image: plasticlabs/honcho:latest
+    container_name: honcho-deriver
+    restart: unless-stopped
+    entrypoint: ["/app/.venv/bin/python", "-m", "src.deriver"]
+    depends_on:
+      honcho-db:
+        condition: service_healthy
+      honcho-redis:
+        condition: service_healthy
+    env_file:
+      - path: .env.deriver
+        required: false
+
+volumes:
+  redis-data:

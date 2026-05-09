@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.honcho.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git config *)"
+    ]
+  }
+}
