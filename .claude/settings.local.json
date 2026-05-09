@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:docs.honcho.dev)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "WebFetch(domain:openrouter.ai)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
