@@ -23,10 +23,7 @@ Local Docker stack for [Honcho](https://github.com/plastic-labs/honcho) — an o
 git clone <this-repo> && cd honcho-memory
 
 # 2. Create env files from examples
-cp .env.example .env
-cp .env.db.example .env.db
-cp .env.api.example .env.api
-cp .env.deriver.example .env.deriver
+make init
 
 # 3. Fill in your key (the only required edit)
 #    In .env.api and .env.deriver: LLM_OPENROUTER_API_KEY
