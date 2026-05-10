@@ -46,7 +46,20 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── 3. API ────────────────────────────────────────────────────────────────────
+  # ── 3. Migrations ────────────────────────────────────────────────────────────
+  honcho-migrate:
+    image: honcho:local
+    container_name: honcho-migrate
+    restart: "no"
+    entrypoint: ["/app/.venv/bin/alembic", "upgrade", "head"]
+    depends_on:
+      honcho-db:
+        condition: service_healthy
+    env_file:
+      - path: .env.api
+        required: false
+
+  # ── 4. API ────────────────────────────────────────────────────────────────────
   honcho-api:
     image: honcho:local
     container_name: honcho-api
@@ -56,13 +69,15 @@ services:
         condition: service_healthy
       honcho-redis:
         condition: service_healthy
+      honcho-migrate:
+        condition: service_completed_successfully
     env_file:
       - path: .env.api
         required: false
     ports:
       - "${HONCHO_BIND:-127.0.0.1}:${HONCHO_PORT:-8000}:8000"
 
-  # ── 4. Deriver ────────────────────────────────────────────────────────────────
+  # ── 5. Deriver ────────────────────────────────────────────────────────────────
   honcho-deriver:
     image: honcho:local
     container_name: honcho-deriver
@@ -73,6 +88,8 @@ services:
         condition: service_healthy
       honcho-redis:
         condition: service_healthy
+      honcho-migrate:
+        condition: service_completed_successfully
     env_file:
       - path: .env.deriver
         required: false
