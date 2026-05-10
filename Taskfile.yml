@@ -29,7 +29,7 @@ tasks:
   build:
     desc: Build the honcho image from source (pulls directly from GitHub)
     cmds:
-      - docker build https://github.com/plastic-labs/honcho.git -t honcho:local
+      - docker buildx build https://github.com/plastic-labs/honcho.git#main -t honcho:local
 
   up:
     desc: Start all containers (detached)
